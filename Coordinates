@@ -1,0 +1,35 @@
+-- Giao diện hiển thị toạ độ ở góc trái trên
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local camera = workspace.CurrentCamera
+
+-- Tạo GUI
+local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+screenGui.Name = "CoordinatesDisplay"
+screenGui.ResetOnSpawn = false
+
+local coordLabel = Instance.new("TextLabel", screenGui)
+coordLabel.Size = UDim2.new(0, 300, 0, 50)
+coordLabel.Position = UDim2.new(0, 10, 0, 10) -- Góc trái trên
+coordLabel.BackgroundTransparency = 1
+coordLabel.TextScaled = true
+coordLabel.Font = Enum.Font.SourceSansBold
+coordLabel.TextColor3 = Color3.new(1, 1, 1)
+coordLabel.TextStrokeTransparency = 0.6
+coordLabel.TextXAlignment = Enum.TextXAlignment.Left
+coordLabel.Text = "Tọa độ: X: 0, Y: 0, Z: 0"
+
+-- Cập nhật toạ độ mỗi frame
+RunService.RenderStepped:Connect(function()
+	local char = player.Character
+	if char and char:FindFirstChild("HumanoidRootPart") then
+		local pos = char.HumanoidRootPart.Position
+		local x = math.floor(pos.X)
+		local y = math.floor(pos.Y)
+		local z = math.floor(pos.Z)
+		coordLabel.Text = string.format("Tọa độ: X: %d, Y: %d, Z: %d", x, y, z)
+	end
+end)
