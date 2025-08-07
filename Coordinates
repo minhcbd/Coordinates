@@ -1,35 +1,43 @@
--- Giao diện hiển thị toạ độ ở góc trái trên
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local camera = workspace.CurrentCamera
 
--- Tạo GUI
-local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-screenGui.Name = "CoordinatesDisplay"
+-- Tạo GUI trong PlayerGui cho dễ quản lý và không bị lỗi khi respawn
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "InfoDisplay"
 screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
 
-local coordLabel = Instance.new("TextLabel", screenGui)
-coordLabel.Size = UDim2.new(0, 300, 0, 50)
-coordLabel.Position = UDim2.new(0, 10, 0, 10) -- Góc trái trên
-coordLabel.BackgroundTransparency = 1
-coordLabel.TextScaled = true
-coordLabel.Font = Enum.Font.SourceSansBold
-coordLabel.TextColor3 = Color3.new(1, 1, 1)
-coordLabel.TextStrokeTransparency = 0.6
-coordLabel.TextXAlignment = Enum.TextXAlignment.Left
-coordLabel.Text = "Tọa độ: X: 0, Y: 0, Z: 0"
+-- Label hiển thị thông tin
+local infoLabel = Instance.new("TextLabel")
+infoLabel.Size = UDim2.new(0, 350, 0, 70)
+infoLabel.Position = UDim2.new(0, 10, 0, 10) -- góc trái trên
+infoLabel.BackgroundTransparency = 1
+infoLabel.TextScaled = true
+infoLabel.Font = Enum.Font.SourceSansBold
+infoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+infoLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+infoLabel.TextStrokeTransparency = 0.6
+infoLabel.TextXAlignment = Enum.TextXAlignment.Left
+infoLabel.TextYAlignment = Enum.TextYAlignment.Top
+infoLabel.Text = "Loading..."
 
--- Cập nhật toạ độ mỗi frame
+infoLabel.Parent = screenGui
+
 RunService.RenderStepped:Connect(function()
-	local char = player.Character
-	if char and char:FindFirstChild("HumanoidRootPart") then
-		local pos = char.HumanoidRootPart.Position
-		local x = math.floor(pos.X)
-		local y = math.floor(pos.Y)
-		local z = math.floor(pos.Z)
-		coordLabel.Text = string.format("Tọa độ: X: %d, Y: %d, Z: %d", x, y, z)
-	end
+    local char = player.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if hrp then
+        local pos = hrp.Position
+        infoLabel.Text = string.format(
+            "PlaceId: %d\nGameId: %d\nTọa độ: X: %.1f, Y: %.1f, Z: %.1f",
+            game.PlaceId, game.GameId, pos.X, pos.Y, pos.Z
+        )
+    else
+        infoLabel.Text = string.format(
+            "PlaceId: %d\nGameId: %d\nTọa độ: Loading...",
+            game.PlaceId, game.GameId
+        )
+    end
 end)
