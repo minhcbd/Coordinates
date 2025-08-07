@@ -1,50 +1,82 @@
--- Anti-Ban Info HUD (Low Risk Display)
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
+local base64 = {}
 
-local player = Players.LocalPlayer
+local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+function base64.decode(data)
+	local chars = {}
+	data = data:gsub("[^" .. b .. "=]", "")
+	for i = 1, #data, 4 do
+		local a = b:find(data:sub(i, i)) or 0
+		local b_ = b:find(data:sub(i + 1, i + 1)) or 0
+		local c = b:find(data:sub(i + 2, i + 2)) or 0
+		local d = b:find(data:sub(i + 3, i + 3)) or 0
 
--- GUI sẽ không gán trực tiếp vào PlayerGui để tránh bị scan bởi 1 số hệ thống anti-GUI
-local coreGui = game:GetService("CoreGui")
-local success, guiParent = pcall(function()
-	return coreGui:FindFirstChildOfClass("ScreenGui") or coreGui
-end)
+		local byte1 = (a - 1) * 4 + math.floor((b_ - 1) / 16)
+		local byte2 = ((b_ - 1) % 16) * 16 + math.floor((c - 1) / 4)
+		local byte3 = ((c - 1) % 4) * 64 + (d - 1)
 
--- Tạo GUI
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "💡" .. tostring(math.random(1000,9999)) -- tên ngẫu nhiên tránh bị phát hiện
-screenGui.ResetOnSpawn = false
-pcall(function()
-	screenGui.Parent = guiParent
-end)
-
--- Tạo Label hiển thị info
-local infoLabel = Instance.new("TextLabel")
-infoLabel.Size = UDim2.new(0, 320, 0, 60)
-infoLabel.Position = UDim2.new(0, 10, 0, 10)
-infoLabel.BackgroundTransparency = 1
-infoLabel.TextScaled = true
-infoLabel.Font = Enum.Font.SourceSans
-infoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-infoLabel.TextStrokeTransparency = 0.7
-infoLabel.TextXAlignment = Enum.TextXAlignment.Left
-infoLabel.TextYAlignment = Enum.TextYAlignment.Top
-infoLabel.Text = "Loading..."
-
-infoLabel.Parent = screenGui
-
--- Cập nhật toạ độ + id mỗi frame
-RunService.RenderStepped:Connect(function()
-	local char = player.Character
-	local hrp = char and char:FindFirstChild("HumanoidRootPart")
-
-	if hrp then
-		local pos = hrp.Position
-		infoLabel.Text = string.format(
-			"🛰️ PlaceId: %d\n🎮 GameId: %s\n📍 X: %.1f, Y: %.1f, Z: %.1f",
-			game.PlaceId,
-			tostring(game.GameId):sub(1, 8) .. "...", -- rút gọn GameId
-			pos.X, pos.Y, pos.Z
-		)
+		table.insert(chars, string.char(byte1))
+		if data:sub(i + 2, i + 2) ~= '=' then
+			table.insert(chars, string.char(byte2))
+		end
+		if data:sub(i + 3, i + 3) ~= '=' then
+			table.insert(chars, string.char(byte3))
+		end
 	end
-end)
+	return table.concat(chars)
+end
+
+local encoded = [[
+LS0gQW50aS1CYW4gSW5mbyBIVUQgKExvdyBSaXNrIERpc3BsYXkp
+bG9jYWwgUGxheWVycyA9IGdhbWU6R2V0U2VydmljZSgiUGxheWVycyIp
+bG9jYWwgUnVuU2VydmljZSA9IGdhbWU6R2V0U2VydmljZSgiUnVuU2VydmljZSIp
+
+bG9jYWwgcGxheWVyID0gUGxheWVycy5Mb2NhbFBsYXllcg
+
+LS0gR1VJIHPhur0ga2jDtG5nIGfDoW4gdHLhu7FjIHRp4bq_cCB2w6BvIFBsYXllckd1aSDEkeG7gyB0csOhbmggYuG7iyBzY2FuIGLhu59pIDEgc-G7kSBo4buHIHRo4buRbmcgYW50aS1HVUk
+bG9jYWwgY29yZUd1aSA9IGdhbWU6R2V0U2VydmljZSgiQ29yZUd1aSIp
+bG9jYWwgc3VjY2VzcywgZ3VpUGFyZW50ID0gcGNhbGwoZnVuY3Rpb24oKQ
+CXJldHVybiBjb3JlR3VpOkZpbmRGaXJzdENoaWxkT2ZDbGFzcygiU2NyZWVuR3VpIikgb3IgY29yZUd1aQ
+ZW5kKQ
+
+LS0gVOG6oW8gR1VJ
+bG9jYWwgc2NyZWVuR3VpID0gSW5zdGFuY2UubmV3KCJTY3JlZW5HdWkiKQ
+c2NyZWVuR3VpLk5hbWUgPSAi8J-SoSIgLi4gdG9zdHJpbmcobWF0aC5yYW5kb20oMTAwMCw5OTk5KSkgLS0gdMOqbiBuZ-G6q3Ugbmhpw6puIHRyw6FuaCBi4buLIHBow6F0IGhp4buHbg
+c2NyZWVuR3VpLlJlc2V0T25TcGF3biA9IGZhbHNl
+cGNhbGwoZnVuY3Rpb24oKQ
+CXNjcmVlbkd1aS5QYXJlbnQgPSBndWlQYXJlbnQ
+ZW5kKQ
+
+LS0gVOG6oW8gTGFiZWwgaGnhu4NuIHRo4buLIGluZm8
+bG9jYWwgaW5mb0xhYmVsID0gSW5zdGFuY2UubmV3KCJUZXh0TGFiZWwiKQ
+aW5mb0xhYmVsLlNpemUgPSBVRGltMi5uZXcoMCwgMzIwLCAwLCA2MCk
+aW5mb0xhYmVsLlBvc2l0aW9uID0gVURpbTIubmV3KDAsIDEwLCAwLCAxMCk
+aW5mb0xhYmVsLkJhY2tncm91bmRUcmFuc3BhcmVuY3kgPSAx
+aW5mb0xhYmVsLlRleHRTY2FsZWQgPSB0cnVl
+aW5mb0xhYmVsLkZvbnQgPSBFbnVtLkZvbnQuU291cmNlU2Fucw
+aW5mb0xhYmVsLlRleHRDb2xvcjMgPSBDb2xvcjMuZnJvbVJHQigyNTUsIDI1NSwgMjU1KQ
+aW5mb0xhYmVsLlRleHRTdHJva2VUcmFuc3BhcmVuY3kgPSAwLjc
+aW5mb0xhYmVsLlRleHRYQWxpZ25tZW50ID0gRW51bS5UZXh0WEFsaWdubWVudC5MZWZ0
+aW5mb0xhYmVsLlRleHRZQWxpZ25tZW50ID0gRW51bS5UZXh0WUFsaWdubWVudC5Ub3A
+aW5mb0xhYmVsLlRleHQgPSAiTG9hZGluZy4uLiI
+
+aW5mb0xhYmVsLlBhcmVudCA9IHNjcmVlbkd1aQ
+
+LS0gQ-G6rXAgbmjhuq10IHRv4bqhIMSR4buZICsgaWQgbeG7l2kgZnJhbWU
+UnVuU2VydmljZS5SZW5kZXJTdGVwcGVkOkNvbm5lY3QoZnVuY3Rpb24oKQ
+CWxvY2FsIGNoYXIgPSBwbGF5ZXIuQ2hhcmFjdGVy
+CWxvY2FsIGhycCA9IGNoYXIgYW5kIGNoYXI6RmluZEZpcnN0Q2hpbGQoIkh1bWFub2lkUm9vdFBhcnQiKQ
+
+CWlmIGhycCB0aGVu
+CQlsb2NhbCBwb3MgPSBocnAuUG9zaXRpb24
+CQlpbmZvTGFiZWwuVGV4dCA9IHN0cmluZy5mb3JtYXQo
+CQkJIvCfm7DvuI8gUGxhY2VJZDogJWRcbvCfjq4gR2FtZUlkOiAlc1xu8J-TjSBYOiAlLjFmLCBZOiAlLjFmLCBaOiAlLjFmIiw
+CQkJZ2FtZS5QbGFjZUlkLA
+CQkJdG9zdHJpbmcoZ2FtZS5HYW1lSWQpOnN1YigxLCA4KSAuLiAiLi4uIiwgLS0gcsO6dCBn4buNbiBHYW1lSWQ
+CQkJcG9zLlgsIHBvcy5ZLCBwb3MuWg
+CQkp
+CWVuZA
+ZW5kKQ
+]]
+
+local decoded = base64.decode(encoded)
+print(decoded)
