@@ -1,43 +1,50 @@
+-- Anti-Ban Info HUD (Low Risk Display)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 
--- Tạo GUI trong PlayerGui cho dễ quản lý và không bị lỗi khi respawn
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "InfoDisplay"
-screenGui.ResetOnSpawn = false
-screenGui.Parent = player:WaitForChild("PlayerGui")
+-- GUI sẽ không gán trực tiếp vào PlayerGui để tránh bị scan bởi 1 số hệ thống anti-GUI
+local coreGui = game:GetService("CoreGui")
+local success, guiParent = pcall(function()
+	return coreGui:FindFirstChildOfClass("ScreenGui") or coreGui
+end)
 
--- Label hiển thị thông tin
+-- Tạo GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "💡" .. tostring(math.random(1000,9999)) -- tên ngẫu nhiên tránh bị phát hiện
+screenGui.ResetOnSpawn = false
+pcall(function()
+	screenGui.Parent = guiParent
+end)
+
+-- Tạo Label hiển thị info
 local infoLabel = Instance.new("TextLabel")
-infoLabel.Size = UDim2.new(0, 350, 0, 70)
-infoLabel.Position = UDim2.new(0, 10, 0, 10) -- góc trái trên
+infoLabel.Size = UDim2.new(0, 320, 0, 60)
+infoLabel.Position = UDim2.new(0, 10, 0, 10)
 infoLabel.BackgroundTransparency = 1
 infoLabel.TextScaled = true
-infoLabel.Font = Enum.Font.SourceSansBold
+infoLabel.Font = Enum.Font.SourceSans
 infoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-infoLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-infoLabel.TextStrokeTransparency = 0.6
+infoLabel.TextStrokeTransparency = 0.7
 infoLabel.TextXAlignment = Enum.TextXAlignment.Left
 infoLabel.TextYAlignment = Enum.TextYAlignment.Top
 infoLabel.Text = "Loading..."
 
 infoLabel.Parent = screenGui
 
+-- Cập nhật toạ độ + id mỗi frame
 RunService.RenderStepped:Connect(function()
-    local char = player.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    if hrp then
-        local pos = hrp.Position
-        infoLabel.Text = string.format(
-            "PlaceId: %d\nGameId: %d\nTọa độ: X: %.1f, Y: %.1f, Z: %.1f",
-            game.PlaceId, game.GameId, pos.X, pos.Y, pos.Z
-        )
-    else
-        infoLabel.Text = string.format(
-            "PlaceId: %d\nGameId: %d\nTọa độ: Loading...",
-            game.PlaceId, game.GameId
-        )
-    end
+	local char = player.Character
+	local hrp = char and char:FindFirstChild("HumanoidRootPart")
+
+	if hrp then
+		local pos = hrp.Position
+		infoLabel.Text = string.format(
+			"🛰️ PlaceId: %d\n🎮 GameId: %s\n📍 X: %.1f, Y: %.1f, Z: %.1f",
+			game.PlaceId,
+			tostring(game.GameId):sub(1, 8) .. "...", -- rút gọn GameId
+			pos.X, pos.Y, pos.Z
+		)
+	end
 end)
